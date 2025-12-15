@@ -69,6 +69,7 @@ public class ForumService {
         post.setContent(request.getContent());
         post.setUserId(request.getUserId());
         post.setCategory(request.getCategory());
+        post.setImageUrl(request.getImageUrl()); // Fotoğraf URL'i
         post.setSolved(false);
 
         ForumPost savedPost = postRepository.save(post);
@@ -90,18 +91,22 @@ public class ForumService {
         return convertToPostResponse(savedPost);
     }
 
-    // 5. Post sil (sadece öğretmen)
-    public void deletePost(UUID postId, UUID teacherId) {
-        // Öğretmen kontrolü
-        User teacher = userRepository.findById(teacherId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + teacherId));
-
-        if (!"TEACHER".equals(teacher.getRole())) {
-            throw new RuntimeException("Bu işlemi sadece öğretmenler yapabilir!");
-        }
+    // 5. Post sil (öğretmen veya soru sahibi)
+    public void deletePost(UUID postId, UUID userId) {
+        // Kullanıcıyı bul
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
 
         ForumPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post bulunamadı: " + postId));
+
+        // Yetki kontrolü: Öğretmen veya post sahibi silebilir
+        boolean isTeacher = "TEACHER".equals(user.getRole());
+        boolean isOwner = post.getUserId() != null && post.getUserId().equals(userId);
+
+        if (!isTeacher && !isOwner) {
+            throw new RuntimeException("Bu işlemi sadece öğretmenler veya soru sahibi yapabilir!");
+        }
 
         // Önce ilişkili resmi sil (varsa)
         if (post.getImageUrl() != null && !post.getImageUrl().isEmpty()) {

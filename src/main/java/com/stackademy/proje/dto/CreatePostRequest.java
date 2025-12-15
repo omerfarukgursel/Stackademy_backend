@@ -7,6 +7,7 @@ public class CreatePostRequest {
     private String content;
     private UUID userId; // Soruyu soran kim?
     private String category; // Kategori (TYT, AYT, Matematik, vb.)
+    private String imageUrl; // Soru görseli URL'i (opsiyonel)
 
     // --- MANUEL GETTER VE SETTERLAR ---
     public String getTitle() {
@@ -39,5 +40,13 @@ public class CreatePostRequest {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
