@@ -26,4 +26,15 @@ public class EmailService {
         mailSender.send(message);
         System.out.println("Mail başarıyla gönderildi: " + toEmail);
     }
+
+    public void sendFeedbackEmail(String toEmail, String subject, String content) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("SENIN_GMAIL_ADRESIN@gmail.com");
+        message.setTo(toEmail);
+        message.setSubject("Görüş/Öneri: " + subject);
+        message.setText(content);
+
+        mailSender.send(message);
+        System.out.println("Feedback maili gönderildi: " + toEmail);
+    }
 }
