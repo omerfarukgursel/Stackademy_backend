@@ -1,0 +1,26 @@
+# Build outputs
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment & Secrets
+.env
+*.env
+gcp-key.json
+application-local.properties
+
+# Docker local testing
+docker-compose.local.yml

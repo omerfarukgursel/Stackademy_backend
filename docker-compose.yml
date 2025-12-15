@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: proje-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Database (Google Cloud SQL)
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://35.233.83.137:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=omER4613/
+      # JPA Settings
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      # File Upload Limits
+      - SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=2000MB
+      - SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=2000MB
+      # GCP Credentials
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-key.json
+    volumes:
+      - ./gcp-key.json:/app/gcp-key.json:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Local PostgreSQL for development
+  # Uncomment below if you want to use local database instead of Cloud SQL
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: proje-postgres
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=proje_db
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+# volumes:
+#   postgres_data:

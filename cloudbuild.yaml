@@ -1,0 +1,37 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/hallowed-trail-476414-r6/proje-backend', '.']
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/hallowed-trail-476414-r6/proje-backend']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'proje-backend'
+      - '--image'
+      - 'gcr.io/hallowed-trail-476414-r6/proje-backend'
+      - '--region'
+      - 'europe-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--port'
+      - '8080'
+      - '--set-env-vars'
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://35.233.83.137:5432/postgres,SPRING_DATASOURCE_USERNAME=postgres,SPRING_DATASOURCE_PASSWORD=omER4613/,SPRING_JPA_HIBERNATE_DDL_AUTO=update'
+
+images:
+  - 'gcr.io/hallowed-trail-476414-r6/proje-backend'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
