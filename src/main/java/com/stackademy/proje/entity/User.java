@@ -45,8 +45,10 @@ public class User extends BaseEntity implements UserDetails { // <-- DEĞİŞİK
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Kullanıcının rolünü Spring Security'ye bildiriyoruz
-        return List.of(new SimpleGrantedAuthority(role));
+        // Rol null ise boş liste dönmeyelim, hata alabiliriz. Varsayılan bir rol
+        // atayalım.
+        String authority = role != null ? role.toUpperCase() : "STUDENT";
+        return List.of(new SimpleGrantedAuthority(authority));
     }
 
     @Override

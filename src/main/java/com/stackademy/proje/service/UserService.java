@@ -108,7 +108,7 @@ public class UserService {
         User teacher = userRepository.findByEmail(teacherEmail)
                 .orElseThrow(() -> new RuntimeException("Öğretmen bulunamadı: " + teacherEmail));
 
-        if (!"TEACHER".equals(teacher.getRole())) {
+        if (!"TEACHER".equalsIgnoreCase(teacher.getRole())) {
             throw new RuntimeException("Bu işlemi sadece öğretmenler yapabilir!");
         }
 

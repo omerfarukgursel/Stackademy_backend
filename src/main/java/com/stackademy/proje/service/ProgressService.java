@@ -12,14 +12,18 @@ import java.util.Optional;
 public class ProgressService {
 
     private final UserProgressRepository progressRepository;
+    private final com.stackademy.proje.repository.UserRepository userRepository;
 
-    public ProgressService(UserProgressRepository progressRepository) {
+    public ProgressService(UserProgressRepository progressRepository,
+            com.stackademy.proje.repository.UserRepository userRepository) {
         this.progressRepository = progressRepository;
+        this.userRepository = userRepository;
     }
 
     public String updateProgress(ProgressUpdateRequest request) {
         // 1. Önce bu kullanıcının bu derste kaydı var mı bakalım
-        Optional<UserProgress> existingProgress = progressRepository.findByUserIdAndContentId(request.getUserId(), request.getContentId());
+        Optional<UserProgress> existingProgress = progressRepository.findByUserIdAndContentId(request.getUserId(),
+                request.getContentId());
 
         UserProgress progress;
 
@@ -51,7 +55,32 @@ public class ProgressService {
         }
 
         progressRepository.save(progress);
-        
+
         return "İlerleme kaydedildi: %" + percentage;
+    }
+
+    // --- SON KALINAN KONU ---
+
+    public void updateLastTopic(String email, String category, String topic) {
+        com.stackademy.proje.entity.User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+        user.setLastCategory(category);
+        user.setLastTopic(topic);
+        user.setLastStudyTime(java.time.LocalDateTime.now());
+
+        userRepository.save(user);
+    }
+
+    public java.util.Map<String, String> getLastTopic(String email) {
+        com.stackademy.proje.entity.User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+        java.util.Map<String, String> response = new java.util.HashMap<>();
+        response.put("lastCategory", user.getLastCategory());
+        response.put("lastTopic", user.getLastTopic());
+        response.put("lastStudyTime", user.getLastStudyTime() != null ? user.getLastStudyTime().toString() : null);
+
+        return response;
     }
 }

@@ -108,7 +108,7 @@ public class ForumService {
                 .orElseThrow(() -> new RuntimeException("Post bulunamadı: " + postId));
 
         // Yetki kontrolü: Öğretmen veya soru sahibi çözüldü işaretini kaldırabilir
-        boolean isTeacher = "TEACHER".equals(user.getRole());
+        boolean isTeacher = "TEACHER".equalsIgnoreCase(user.getRole());
         boolean isOwner = post.getUserId() != null && post.getUserId().equals(userId);
 
         if (!isTeacher && !isOwner) {
@@ -130,7 +130,7 @@ public class ForumService {
                 .orElseThrow(() -> new RuntimeException("Post bulunamadı: " + postId));
 
         // Yetki kontrolü: Öğretmen veya post sahibi silebilir
-        boolean isTeacher = "TEACHER".equals(user.getRole());
+        boolean isTeacher = "TEACHER".equalsIgnoreCase(user.getRole());
         boolean isOwner = post.getUserId() != null && post.getUserId().equals(userId);
 
         if (!isTeacher && !isOwner) {
@@ -171,6 +171,14 @@ public class ForumService {
         // Susturma kontrolü
         checkUserTimeout(request.getUserId());
 
+        // Post kontrolü - Eğer çözüldüyse yorum eklenemez
+        ForumPost post = postRepository.findById(request.getPostId())
+                .orElseThrow(() -> new RuntimeException("Post bulunamadı: " + request.getPostId()));
+
+        if (post.isSolved()) {
+            throw new RuntimeException("Bu soru çözüldü, yeni yorum eklenemez!");
+        }
+
         ForumReply reply = new ForumReply();
         reply.setContent(request.getContent());
         reply.setUserId(request.getUserId());
@@ -187,7 +195,7 @@ public class ForumService {
         User teacher = userRepository.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + teacherId));
 
-        if (!"TEACHER".equals(teacher.getRole())) {
+        if (!"TEACHER".equalsIgnoreCase(teacher.getRole())) {
             throw new RuntimeException("Bu işlemi sadece öğretmenler yapabilir!");
         }
 
