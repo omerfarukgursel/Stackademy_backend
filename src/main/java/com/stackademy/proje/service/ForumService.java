@@ -181,6 +181,7 @@ public class ForumService {
 
         ForumReply reply = new ForumReply();
         reply.setContent(request.getContent());
+        reply.setImageUrl(request.getImageUrl()); // Görsel URL'sini kaydet
         reply.setUserId(request.getUserId());
         reply.setPostId(request.getPostId());
         reply.setDeleted(false);
