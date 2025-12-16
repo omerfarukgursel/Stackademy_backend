@@ -13,6 +13,7 @@ public class ForumPost extends BaseEntity {
     private String imageUrl; // Soru görseli URL'i (opsiyonel)
     private String category; // Kategori (TYT, AYT, Matematik, Fizik, Kimya, Biyoloji, Diğer)
     private boolean isSolved; // Çözüldü mü?
+    private String accessLevel; // Erişim seviyesi (FREE, PREMIUM, EXCLUSIVE) - sadece öğretmenler için
 
     // --- MANUEL GETTER VE SETTERLAR ---
 
@@ -62,5 +63,13 @@ public class ForumPost extends BaseEntity {
 
     public void setSolved(boolean solved) {
         isSolved = solved;
+    }
+
+    public String getAccessLevel() {
+        return accessLevel;
+    }
+
+    public void setAccessLevel(String accessLevel) {
+        this.accessLevel = accessLevel;
     }
 }

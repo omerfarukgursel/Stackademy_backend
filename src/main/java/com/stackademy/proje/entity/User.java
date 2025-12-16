@@ -35,7 +35,8 @@ public class User extends BaseEntity implements UserDetails { // <-- DEĞİŞİK
     private java.time.LocalDateTime timeoutUntil; // Kullanıcı susturma bitiş zamanı
 
     // Sıralama ve ilerleme için
-    private int totalScore; // Toplam puan (quiz'lerden)
+    @Column(columnDefinition = "integer default 0")
+    private Integer totalScore = 0; // Toplam puan (quiz'lerden)
     private String lastTopic; // Son çalışılan konu
     private String lastCategory; // Son çalışılan kategori
     private java.time.LocalDateTime lastStudyTime; // Son çalışma zamanı
