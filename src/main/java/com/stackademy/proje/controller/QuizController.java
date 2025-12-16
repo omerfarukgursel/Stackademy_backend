@@ -97,6 +97,27 @@ public class QuizController {
         }
     }
 
+    /**
+     * Öğrencinin bu quiz için önceki denemesini getir
+     * GET /api/quizzes/{id}/my-attempt
+     */
+    @GetMapping("/quizzes/{id}/my-attempt")
+    public ResponseEntity<?> getMyAttempt(@PathVariable UUID id, Principal principal) {
+        try {
+            User student = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+            QuizResultResponse result = quizService.getMyAttempt(id, student.getId());
+            if (result == null) {
+                return ResponseEntity.status(404).body(Map.of("error", "Henüz bu deneme çözülmedi"));
+            }
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // ========== SIRALAMA ENDPOINT'LERİ ==========
 
     /**

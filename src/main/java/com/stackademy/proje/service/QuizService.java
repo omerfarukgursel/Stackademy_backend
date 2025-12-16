@@ -235,6 +235,37 @@ public class QuizService {
         return result;
     }
 
+    /**
+     * Öğrencinin bu quiz için önceki denemesini getir
+     */
+    public QuizResultResponse getMyAttempt(UUID quizId, UUID studentId) {
+        Optional<QuizAttempt> attemptOpt = attemptRepository.findByQuizIdAndStudentId(quizId, studentId);
+
+        if (attemptOpt.isEmpty() || !attemptOpt.get().isCompleted()) {
+            return null;
+        }
+
+        QuizAttempt attempt = attemptOpt.get();
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new RuntimeException("Deneme bulunamadı: " + quizId));
+
+        List<QuizQuestion> questions = questionRepository.findByQuizIdOrderByQuestionNumberAsc(quizId);
+
+        User student = userRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Öğrenci bulunamadı: " + studentId));
+
+        QuizResultResponse result = new QuizResultResponse();
+        result.setQuizId(quizId.toString());
+        result.setQuizTitle(quiz.getTitle());
+        result.setTotalQuestions(questions.size());
+        result.setCorrectCount(attempt.getCorrectCount());
+        result.setWrongCount(attempt.getWrongCount());
+        result.setScore(attempt.getScore());
+        result.setTotalScore(student.getTotalScore());
+
+        return result;
+    }
+
     // --- YARDIMCI METODLAR ---
 
     private QuizResponse convertToResponse(Quiz quiz, boolean showAnswers) {
