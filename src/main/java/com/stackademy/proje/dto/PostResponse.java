@@ -1,5 +1,6 @@
 package com.stackademy.proje.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
 public class PostResponse {
@@ -10,7 +11,10 @@ public class PostResponse {
     private String content;
     private String imageUrl;
     private String category;
+
+    @JsonProperty("isSolved")
     private boolean isSolved;
+
     private int commentCount;
     private String accessLevel;
     private LocalDateTime createdAt;
