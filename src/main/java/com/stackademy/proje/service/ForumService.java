@@ -99,6 +99,27 @@ public class ForumService {
         return convertToPostResponse(savedPost);
     }
 
+    // 4b. Çözüldü işaretini kaldır
+    public PostResponse markAsUnsolved(UUID postId, UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+
+        ForumPost post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post bulunamadı: " + postId));
+
+        // Yetki kontrolü: Öğretmen veya soru sahibi çözüldü işaretini kaldırabilir
+        boolean isTeacher = "TEACHER".equals(user.getRole());
+        boolean isOwner = post.getUserId() != null && post.getUserId().equals(userId);
+
+        if (!isTeacher && !isOwner) {
+            throw new RuntimeException("Bu işlemi sadece soru sahibi veya öğretmenler yapabilir!");
+        }
+
+        post.setSolved(false);
+        ForumPost savedPost = postRepository.save(post);
+        return convertToPostResponse(savedPost);
+    }
+
     // 5. Post sil (öğretmen veya soru sahibi)
     public void deletePost(UUID postId, UUID userId) {
         // Kullanıcıyı bul

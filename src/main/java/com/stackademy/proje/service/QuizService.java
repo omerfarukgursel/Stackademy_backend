@@ -266,6 +266,25 @@ public class QuizService {
         return result;
     }
 
+    /**
+     * Denemeyi ve bağlı verileri sil (Öğretmen)
+     */
+    @Transactional
+    public void deleteQuiz(UUID quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new RuntimeException("Deneme bulunamadı: " + quizId));
+
+        // 1. Soruları sil
+        List<QuizQuestion> questions = questionRepository.findByQuizIdOrderByQuestionNumberAsc(quizId);
+        questionRepository.deleteAll(questions);
+
+        // 2. Denemeleri (öğrenci sonuçlarını) sil
+        attemptRepository.deleteByQuizId(quizId);
+
+        // 3. Quizi sil
+        quizRepository.delete(quiz);
+    }
+
     // --- YARDIMCI METODLAR ---
 
     private QuizResponse convertToResponse(Quiz quiz, boolean showAnswers) {

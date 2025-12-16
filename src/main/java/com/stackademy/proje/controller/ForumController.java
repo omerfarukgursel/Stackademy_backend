@@ -73,6 +73,15 @@ public class ForumController {
         return ResponseEntity.ok(forumService.markAsSolved(id, user.getId()));
     }
 
+    // 4b. Çözüldü işaretini kaldır
+    // PATCH /api/posts/{id}/unsolved
+    @PatchMapping("/posts/{id}/unsolved")
+    public ResponseEntity<PostResponse> markAsUnsolved(@PathVariable UUID id, Principal principal) {
+        User user = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+        return ResponseEntity.ok(forumService.markAsUnsolved(id, user.getId()));
+    }
+
     // 5. Post sil (sadece öğretmen)
     // DELETE /api/posts/{id}
     @DeleteMapping("/posts/{id}")

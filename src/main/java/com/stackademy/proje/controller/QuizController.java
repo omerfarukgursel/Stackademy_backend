@@ -151,6 +151,30 @@ public class QuizController {
     // ========== KALDIĞIMIZ YER ENDPOINT'LERİ ==========
 
     /**
+     * Deneme sil
+     * DELETE /api/quizzes/{id}
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteQuiz(@PathVariable UUID id, Principal principal) {
+        try {
+            // Yetki kontrolü (Service içinde veya Security config ile yapılmalı ama burada
+            // rol check yapabiliriz)
+            User user = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+            if (!"TEACHER".equals(user.getRole())) {
+                return ResponseEntity.status(403).body(Map.of("error", "Sadece öğretmenler silebilir"));
+            }
+
+            quizService.deleteQuiz(id);
+            return ResponseEntity.ok(Map.of("message", "Deneme başarıyla silindi"));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * Son konuyu kaydet
      * POST /api/progress/last-topic
      */

@@ -19,4 +19,7 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, UUID> 
 
     // Öğrencinin bu quiz'i çözüp çözmediğini kontrol
     boolean existsByQuizIdAndStudentIdAndIsCompletedTrue(UUID quizId, UUID studentId);
+
+    // Quiz silindiğinde ilgili denemeleri sil
+    void deleteByQuizId(UUID quizId);
 }
