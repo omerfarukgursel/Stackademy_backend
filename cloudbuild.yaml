@@ -27,8 +27,10 @@ steps:
       - '1'
       - '--port'
       - '8080'
+      - '--add-cloudsql-instances'
+      - 'hallowed-trail-476414-r6:europe-west1:stackadmin'
       - '--set-env-vars'
-      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://35.233.83.137:5432/postgres,SPRING_DATASOURCE_USERNAME=postgres,SPRING_DATASOURCE_PASSWORD=omER4613/,SPRING_JPA_HIBERNATE_DDL_AUTO=update'
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql:///postgres?cloudSqlInstance=hallowed-trail-476414-r6:europe-west1:stackadmin&socketFactory=com.google.cloud.sql.postgres.SocketFactory,SPRING_DATASOURCE_USERNAME=postgres,SPRING_DATASOURCE_PASSWORD=omER4613/,SPRING_JPA_HIBERNATE_DDL_AUTO=update'
 
 images:
   - 'gcr.io/hallowed-trail-476414-r6/proje-backend'
