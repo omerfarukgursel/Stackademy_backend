@@ -8,6 +8,7 @@ public class CreatePostRequest {
     private UUID userId; // Soruyu soran kim?
     private String category; // Kategori (TYT, AYT, Matematik, vb.)
     private String imageUrl; // Soru görseli URL'i (opsiyonel)
+    private String accessLevel; // Erişim seviyesi (FREE, PREMIUM, EXCLUSIVE)
 
     // --- MANUEL GETTER VE SETTERLAR ---
     public String getTitle() {
@@ -48,5 +49,13 @@ public class CreatePostRequest {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getAccessLevel() {
+        return accessLevel;
+    }
+
+    public void setAccessLevel(String accessLevel) {
+        this.accessLevel = accessLevel;
     }
 }

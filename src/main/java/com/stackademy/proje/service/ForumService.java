@@ -70,6 +70,7 @@ public class ForumService {
         post.setUserId(request.getUserId());
         post.setCategory(request.getCategory());
         post.setImageUrl(request.getImageUrl()); // Fotoğraf URL'i
+        post.setAccessLevel(request.getAccessLevel() != null ? request.getAccessLevel() : "FREE"); // Default FREE
         post.setSolved(false);
 
         ForumPost savedPost = postRepository.save(post);
@@ -211,6 +212,7 @@ public class ForumService {
                 post.getCategory(),
                 post.isSolved(),
                 commentCount,
+                post.getAccessLevel() != null ? post.getAccessLevel() : "FREE",
                 post.getCreatedAt());
     }
 

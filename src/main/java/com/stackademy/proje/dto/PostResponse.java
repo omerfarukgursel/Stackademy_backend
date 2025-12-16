@@ -12,12 +12,13 @@ public class PostResponse {
     private String category;
     private boolean isSolved;
     private int commentCount;
+    private String accessLevel;
     private LocalDateTime createdAt;
 
     // --- CONSTRUCTOR ---
     public PostResponse(String id, String userId, String userName, String title,
             String content, String imageUrl, String category,
-            boolean isSolved, int commentCount, LocalDateTime createdAt) {
+            boolean isSolved, int commentCount, String accessLevel, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
         this.userName = userName;
@@ -27,6 +28,7 @@ public class PostResponse {
         this.category = category;
         this.isSolved = isSolved;
         this.commentCount = commentCount;
+        this.accessLevel = accessLevel;
         this.createdAt = createdAt;
     }
 
@@ -109,5 +111,13 @@ public class PostResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getAccessLevel() {
+        return accessLevel;
+    }
+
+    public void setAccessLevel(String accessLevel) {
+        this.accessLevel = accessLevel;
     }
 }
