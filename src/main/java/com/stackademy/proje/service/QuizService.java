@@ -114,7 +114,7 @@ public class QuizService {
         int wrongCount = 0;
 
         for (QuizQuestion question : questions) {
-            String studentAnswer = request.getAnswers().get(question.getQuestionNumber());
+            String studentAnswer = request.getAnswers().get(String.valueOf(question.getQuestionNumber()));
             if (studentAnswer != null && studentAnswer.equalsIgnoreCase(question.getCorrectAnswer())) {
                 correctCount++;
             } else if (studentAnswer != null && !studentAnswer.isEmpty()) {
