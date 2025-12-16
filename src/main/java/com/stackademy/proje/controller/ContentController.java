@@ -20,14 +20,21 @@ public class ContentController {
         this.contentService = contentService;
     }
 
-    // İçerikleri topic ve type'a göre listele
+    // İçerikleri topic ve/veya type'a göre listele
     @GetMapping
     public ResponseEntity<List<Content>> getContents(
             @RequestParam(required = false) String topic,
             @RequestParam(required = false) String type) {
 
+        // topic ve type ikisi de varsa
         if (topic != null && type != null) {
             List<Content> contents = contentService.getContentsByTopicAndType(topic, type);
+            return ResponseEntity.ok(contents);
+        }
+
+        // Sadece topic varsa - topic'e göre filtrele
+        if (topic != null) {
+            List<Content> contents = contentService.getContentsByTopic(topic);
             return ResponseEntity.ok(contents);
         }
 

@@ -58,6 +58,11 @@ public class ContentService {
         return contentRepository.findByTopicAndType(topic, contentType);
     }
 
+    // İçerikleri sadece topic'e göre getir
+    public List<Content> getContentsByTopic(String topic) {
+        return contentRepository.findByTopic(topic);
+    }
+
     // Tüm içerikleri getir
     public List<Content> getAllContents() {
         return contentRepository.findAll();

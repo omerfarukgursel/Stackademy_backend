@@ -76,14 +76,21 @@ public class ForumService {
         return convertToPostResponse(savedPost);
     }
 
-    // 4. Çözüldü işaretle (sadece soru sahibi)
+    // 4. Çözüldü işaretle (soru sahibi veya öğretmen)
     public PostResponse markAsSolved(UUID postId, UUID userId) {
+        // Kullanıcıyı bul
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+
         ForumPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post bulunamadı: " + postId));
 
-        // Sadece soru sahibi çözüldü işaretleyebilir
-        if (!post.getUserId().equals(userId)) {
-            throw new RuntimeException("Bu işlemi sadece soru sahibi yapabilir!");
+        // Yetki kontrolü: Öğretmen veya soru sahibi çözüldü işaretleyebilir
+        boolean isTeacher = "TEACHER".equals(user.getRole());
+        boolean isOwner = post.getUserId() != null && post.getUserId().equals(userId);
+
+        if (!isTeacher && !isOwner) {
+            throw new RuntimeException("Bu işlemi sadece soru sahibi veya öğretmenler yapabilir!");
         }
 
         post.setSolved(true);

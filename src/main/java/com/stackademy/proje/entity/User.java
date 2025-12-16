@@ -34,6 +34,12 @@ public class User extends BaseEntity implements UserDetails { // <-- DEĞİŞİK
 
     private java.time.LocalDateTime timeoutUntil; // Kullanıcı susturma bitiş zamanı
 
+    // Sıralama ve ilerleme için
+    private int totalScore; // Toplam puan (quiz'lerden)
+    private String lastTopic; // Son çalışılan konu
+    private String lastCategory; // Son çalışılan kategori
+    private java.time.LocalDateTime lastStudyTime; // Son çalışma zamanı
+
     // --- USER DETAILS METODLARI (SPRING SECURITY İÇİN) ---
 
     @Override
@@ -172,5 +178,37 @@ public class User extends BaseEntity implements UserDetails { // <-- DEĞİŞİK
 
     public void setTimeoutUntil(java.time.LocalDateTime timeoutUntil) {
         this.timeoutUntil = timeoutUntil;
+    }
+
+    public int getTotalScore() {
+        return totalScore;
+    }
+
+    public void setTotalScore(int totalScore) {
+        this.totalScore = totalScore;
+    }
+
+    public String getLastTopic() {
+        return lastTopic;
+    }
+
+    public void setLastTopic(String lastTopic) {
+        this.lastTopic = lastTopic;
+    }
+
+    public String getLastCategory() {
+        return lastCategory;
+    }
+
+    public void setLastCategory(String lastCategory) {
+        this.lastCategory = lastCategory;
+    }
+
+    public java.time.LocalDateTime getLastStudyTime() {
+        return lastStudyTime;
+    }
+
+    public void setLastStudyTime(java.time.LocalDateTime lastStudyTime) {
+        this.lastStudyTime = lastStudyTime;
     }
 }
