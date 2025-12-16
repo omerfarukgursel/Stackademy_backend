@@ -174,44 +174,4 @@ public class QuizController {
         }
     }
 
-    /**
-     * Son konuyu kaydet
-     * POST /api/progress/last-topic
-     */
-    @PostMapping("/progress/last-topic")
-    public ResponseEntity<?> updateLastTopic(
-            @RequestBody Map<String, String> request,
-            Principal principal) {
-        try {
-            User user = userRepository.findByEmail(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
-
-            String category = request.get("category");
-            String topic = request.get("topic");
-
-            quizService.updateLastTopic(user.getId(), category, topic);
-            return ResponseEntity.ok(Map.of("message", "Son konu kaydedildi"));
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    /**
-     * Son konuyu getir
-     * GET /api/progress/last-topic
-     */
-    @GetMapping("/progress/last-topic")
-    public ResponseEntity<?> getLastTopic(Principal principal) {
-        try {
-            User user = userRepository.findByEmail(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
-
-            Map<String, Object> lastTopic = quizService.getLastTopic(user.getId());
-            return ResponseEntity.ok(lastTopic);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
 }
