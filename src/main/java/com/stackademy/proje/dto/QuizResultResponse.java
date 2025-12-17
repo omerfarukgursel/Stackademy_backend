@@ -8,8 +8,17 @@ public class QuizResultResponse {
     private int wrongCount;
     private int score; // correctCount * 5
     private int totalScore; // Öğrencinin toplam puanı
+    private String answers; // JSON: {"1":"A","2":"C"...} - Öğrencinin cevapları
 
     // Getters and Setters
+    public String getAnswers() {
+        return answers;
+    }
+
+    public void setAnswers(String answers) {
+        this.answers = answers;
+    }
+
     public String getQuizId() {
         return quizId;
     }

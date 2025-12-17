@@ -154,7 +154,7 @@ public class QuizController {
      * Deneme sil
      * DELETE /api/quizzes/{id}
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/quizzes/{id}")
     public ResponseEntity<?> deleteQuiz(@PathVariable UUID id, Principal principal) {
         try {
             // Yetki kontrolü (Service içinde veya Security config ile yapılmalı ama burada

@@ -262,6 +262,7 @@ public class QuizService {
         result.setWrongCount(attempt.getWrongCount());
         result.setScore(attempt.getScore());
         result.setTotalScore(student.getTotalScore());
+        result.setAnswers(attempt.getAnswers()); // Öğrenci cevaplarını ekle
 
         return result;
     }
