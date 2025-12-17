@@ -89,4 +89,11 @@ public class UserController {
                 "success", true,
                 "message", "Paket başarıyla " + packageType + " olarak güncellendi"));
     }
+
+    // 7. Kullanıcının timeout durumunu kontrol et
+    // GET /api/users/me/timeout-status
+    @GetMapping("/me/timeout-status")
+    public ResponseEntity<Map<String, Object>> getMyTimeoutStatus(Principal principal) {
+        return ResponseEntity.ok(userService.getTimeoutStatus(principal.getName()));
+    }
 }

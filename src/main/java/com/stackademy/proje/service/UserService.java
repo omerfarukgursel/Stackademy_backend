@@ -129,4 +129,28 @@ public class UserService {
         user.setSubscriptionPlan(packageType);
         userRepository.save(user);
     }
+
+    // --- TIMEOUT DURUMU KONTROLÜ ---
+    public java.util.Map<String, Object> getTimeoutStatus(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userEmail));
+
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+
+        if (user.getTimeoutUntil() != null && user.getTimeoutUntil().isAfter(java.time.LocalDateTime.now())) {
+            // Kullanıcı susturulmuş
+            long remainingMinutes = java.time.Duration.between(
+                    java.time.LocalDateTime.now(),
+                    user.getTimeoutUntil()).toMinutes();
+
+            result.put("isTimedOut", true);
+            result.put("remainingMinutes", remainingMinutes);
+            result.put("timeoutUntil", user.getTimeoutUntil().toString());
+        } else {
+            result.put("isTimedOut", false);
+            result.put("remainingMinutes", 0);
+        }
+
+        return result;
+    }
 }
