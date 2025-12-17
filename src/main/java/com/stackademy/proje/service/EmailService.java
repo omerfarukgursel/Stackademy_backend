@@ -27,6 +27,21 @@ public class EmailService {
         System.out.println("Mail başarıyla gönderildi: " + toEmail);
     }
 
+    public void sendPasswordResetEmail(String toEmail, String resetCode) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("SENIN_GMAIL_ADRESIN@gmail.com");
+        message.setTo(toEmail);
+        message.setSubject("Şifre Yenileme Kodu");
+        message.setText("Merhaba,\n\n" +
+                "Şifrenizi sıfırlamak için aşağıdaki kodu kullanın:\n\n" +
+                resetCode + "\n\n" +
+                "Bu işlemi siz yapmadıysanız bu maili dikkate almayınız.\n\n" +
+                "İyi çalışmalar dileriz.");
+
+        mailSender.send(message);
+        System.out.println("Şifre sıfırlama maili gönderildi: " + toEmail);
+    }
+
     public void sendFeedbackEmail(String toEmail, String subject, String content) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("SENIN_GMAIL_ADRESIN@gmail.com");

@@ -124,7 +124,7 @@ public class AuthService {
         userRepository.save(user);
 
         try {
-            emailService.sendActivationEmail(user.getEmail(), code);
+            emailService.sendPasswordResetEmail(user.getEmail(), code);
         } catch (Exception e) {
             System.out.println("Mail hatası: " + e.getMessage());
         }
