@@ -20,9 +20,15 @@ public class CloudStorageService {
 
     // Kendi Bucket ismini buraya tekrar yazmayı unutma!
     private final String BUCKET_NAME = "stackfile";
+    private final FFmpegService ffmpegService;
+
+    public CloudStorageService(FFmpegService ffmpegService) {
+        this.ffmpegService = ffmpegService;
+    }
 
     public String uploadFile(MultipartFile file) throws IOException {
         String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+        boolean isVideo = isVideoFile(file);
 
         Storage storage;
 
@@ -46,12 +52,26 @@ public class CloudStorageService {
             storage = StorageOptions.getDefaultInstance().getService();
         }
 
+        byte[] fileBytes = file.getBytes();
+
+        // Process video files with FFmpeg
+        if (isVideo && ffmpegService.isFfmpegAvailable()) {
+            System.out.println("Video detected, processing with FFmpeg...");
+            fileBytes = processVideoWithFFmpeg(file);
+            if (fileBytes == null) {
+                System.err.println("FFmpeg processing failed, uploading original file");
+                fileBytes = file.getBytes();
+            } else {
+                System.out.println("FFmpeg processing successful");
+            }
+        }
+
         BlobId blobId = BlobId.of(BUCKET_NAME, fileName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
                 .setContentType(file.getContentType())
                 .build();
 
-        storage.create(blobInfo, file.getBytes());
+        storage.create(blobInfo, fileBytes);
 
         return "https://storage.googleapis.com/" + BUCKET_NAME + "/" + fileName;
     }
@@ -95,6 +115,81 @@ public class CloudStorageService {
             }
         } catch (Exception e) {
             System.out.println("Dosya silme hatası: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Check if uploaded file is a video
+     */
+    private boolean isVideoFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        String fileName = file.getOriginalFilename();
+
+        if (contentType != null && contentType.startsWith("video/")) {
+            return true;
+        }
+
+        if (fileName != null) {
+            String lowerFileName = fileName.toLowerCase();
+            return lowerFileName.endsWith(".mp4") ||
+                    lowerFileName.endsWith(".mov") ||
+                    lowerFileName.endsWith(".avi") ||
+                    lowerFileName.endsWith(".mkv") ||
+                    lowerFileName.endsWith(".webm");
+        }
+
+        return false;
+    }
+
+    /**
+     * Process video with FFmpeg - fix metadata
+     * Returns processed file bytes or null if failed
+     */
+    private byte[] processVideoWithFFmpeg(MultipartFile file) {
+        Path tempDir = null;
+        try {
+            // Create temp directory
+            tempDir = Files.createTempDirectory("video-processing-");
+            Path inputPath = tempDir.resolve("input-" + file.getOriginalFilename());
+            Path outputPath = tempDir.resolve("output-" + file.getOriginalFilename());
+
+            // Save uploaded file to temp input
+            Files.write(inputPath, file.getBytes());
+
+            // Process with FFmpeg
+            boolean success = ffmpegService.processVideo(
+                    inputPath.toFile(),
+                    outputPath.toFile());
+
+            if (!success) {
+                return null;
+            }
+
+            // Read processed file
+            byte[] processedBytes = Files.readAllBytes(outputPath);
+            return processedBytes;
+
+        } catch (Exception e) {
+            System.err.println("Video processing error: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        } finally {
+            // Clean up temp files
+            if (tempDir != null) {
+                try {
+                    Files.walk(tempDir)
+                            .sorted((a, b) -> -a.compareTo(b)) // Delete files before dirs
+                            .forEach(path -> {
+                                try {
+                                    Files.deleteIfExists(path);
+                                } catch (IOException e) {
+                                    System.err.println("Failed to delete: " + path);
+                                }
+                            });
+                } catch (IOException e) {
+                    System.err.println("Temp cleanup error: " + e.getMessage());
+                }
+            }
         }
     }
 }
