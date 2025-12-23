@@ -1,6 +1,7 @@
 package com.stackademy.proje.service;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.HttpMethod;
@@ -88,19 +89,34 @@ public class CloudStorageService {
     public Map<String, String> generateSignedUploadUrl(String originalFileName, String contentType) throws IOException {
         String fileName = UUID.randomUUID().toString() + "-" + originalFileName;
 
+        // Credentials'i al
+        GoogleCredentials credentials = getCredentials();
         Storage storage = getStorageClient();
 
         BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(BUCKET_NAME, fileName))
                 .setContentType(contentType)
                 .build();
 
-        // Generate a signed URL valid for 15 minutes
-        URL signedUrl = storage.signUrl(
-                blobInfo,
-                15,
-                TimeUnit.MINUTES,
-                Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
-                Storage.SignUrlOption.withContentType());
+        URL signedUrl;
+
+        // ServiceAccountCredentials ile imzala (Cloud Run için gerekli)
+        if (credentials instanceof ServiceAccountCredentials) {
+            signedUrl = storage.signUrl(
+                    blobInfo,
+                    15,
+                    TimeUnit.MINUTES,
+                    Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
+                    Storage.SignUrlOption.withContentType(),
+                    Storage.SignUrlOption.signWith((ServiceAccountCredentials) credentials));
+        } else {
+            // Default credentials - bu Cloud Run'da çalışmayabilir ama deneyeceğiz
+            signedUrl = storage.signUrl(
+                    blobInfo,
+                    15,
+                    TimeUnit.MINUTES,
+                    Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
+                    Storage.SignUrlOption.withContentType());
+        }
 
         Map<String, String> response = new HashMap<>();
         response.put("signedUrl", signedUrl.toString());
@@ -108,6 +124,18 @@ public class CloudStorageService {
         response.put("fileName", fileName);
 
         return response;
+    }
+
+    /**
+     * Get credentials
+     */
+    private GoogleCredentials getCredentials() throws IOException {
+        Path keyPath = Paths.get("gcp-key.json");
+        if (Files.exists(keyPath)) {
+            return GoogleCredentials.fromStream(new FileInputStream(keyPath.toFile()));
+        } else {
+            return GoogleCredentials.getApplicationDefault();
+        }
     }
 
     /**
