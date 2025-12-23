@@ -28,10 +28,18 @@ public class ContentService {
 
     public Content addContent(String title, String category, String topic, String type,
             String accessLevel, String description, String uploaderEmail,
-            MultipartFile file) throws IOException {
+            MultipartFile file, String preUploadedUrl) throws IOException {
 
-        // 1. Dosyayı Google Cloud'a yükle
-        String publicUrl = cloudStorageService.uploadFile(file);
+        // 1. Dosya URL'sini belirle: preUploadedUrl varsa onu kullan, yoksa dosyayı
+        // yükle
+        String publicUrl;
+        if (preUploadedUrl != null && !preUploadedUrl.isEmpty()) {
+            publicUrl = preUploadedUrl;
+        } else if (file != null && !file.isEmpty()) {
+            publicUrl = cloudStorageService.uploadFile(file);
+        } else {
+            throw new IllegalArgumentException("Dosya veya preUploadedUrl gerekli!");
+        }
 
         // 2. Veritabanı nesnesini oluştur
         Content content = new Content();

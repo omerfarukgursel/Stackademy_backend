@@ -3,6 +3,7 @@ package com.stackademy.proje.service;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.HttpMethod;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import org.springframework.stereotype.Service;
@@ -10,10 +11,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class CloudStorageService {
@@ -74,6 +79,50 @@ public class CloudStorageService {
         storage.create(blobInfo, fileBytes);
 
         return "https://storage.googleapis.com/" + BUCKET_NAME + "/" + fileName;
+    }
+
+    /**
+     * Generate a Signed URL for direct client-side upload to GCS.
+     * This bypasses the 32MB Cloud Run limit.
+     */
+    public Map<String, String> generateSignedUploadUrl(String originalFileName, String contentType) throws IOException {
+        String fileName = UUID.randomUUID().toString() + "-" + originalFileName;
+
+        Storage storage = getStorageClient();
+
+        BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(BUCKET_NAME, fileName))
+                .setContentType(contentType)
+                .build();
+
+        // Generate a signed URL valid for 15 minutes
+        URL signedUrl = storage.signUrl(
+                blobInfo,
+                15,
+                TimeUnit.MINUTES,
+                Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
+                Storage.SignUrlOption.withContentType());
+
+        Map<String, String> response = new HashMap<>();
+        response.put("signedUrl", signedUrl.toString());
+        response.put("publicUrl", "https://storage.googleapis.com/" + BUCKET_NAME + "/" + fileName);
+        response.put("fileName", fileName);
+
+        return response;
+    }
+
+    /**
+     * Helper to get Storage client (DRY)
+     */
+    private Storage getStorageClient() throws IOException {
+        Path keyPath = Paths.get("gcp-key.json");
+        if (Files.exists(keyPath)) {
+            return StorageOptions.newBuilder()
+                    .setCredentials(GoogleCredentials.fromStream(new FileInputStream(keyPath.toFile())))
+                    .build()
+                    .getService();
+        } else {
+            return StorageOptions.getDefaultInstance().getService();
+        }
     }
 
     // Dosya silme metodu

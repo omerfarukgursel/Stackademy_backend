@@ -2,12 +2,14 @@ package com.stackademy.proje.controller;
 
 import com.stackademy.proje.entity.Content;
 import com.stackademy.proje.service.ContentService;
+import com.stackademy.proje.service.CloudStorageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -15,9 +17,11 @@ import java.util.UUID;
 public class ContentController {
 
     private final ContentService contentService;
+    private final CloudStorageService cloudStorageService;
 
-    public ContentController(ContentService contentService) {
+    public ContentController(ContentService contentService, CloudStorageService cloudStorageService) {
         this.contentService = contentService;
+        this.cloudStorageService = cloudStorageService;
     }
 
     // İçerikleri topic ve/veya type'a göre listele
@@ -43,6 +47,27 @@ public class ContentController {
         return ResponseEntity.ok(allContents);
     }
 
+    /**
+     * Generate a Signed URL for direct upload to GCS (bypasses 32MB Cloud Run
+     * limit).
+     */
+    @GetMapping("/generate-upload-url")
+    public ResponseEntity<?> generateUploadUrl(
+            @RequestParam("fileName") String fileName,
+            @RequestParam("contentType") String contentType,
+            Principal principal) {
+        try {
+            if (principal == null) {
+                return ResponseEntity.status(401).body("Yetkisiz erişim!");
+            }
+            Map<String, String> result = cloudStorageService.generateSignedUploadUrl(fileName, contentType);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Signed URL oluşturulamadı: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/add")
     public ResponseEntity<?> addContent(
             @RequestParam("title") String title,
@@ -52,7 +77,9 @@ public class ContentController {
             @RequestParam("accessLevel") String accessLevel,
             @RequestParam("description") String description,
             @RequestParam(value = "uploaderId", required = false) String uploaderId, // Opsiyonel - geri uyumluluk
-            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "file", required = false) MultipartFile file, // Artık opsiyonel
+            @RequestParam(value = "preUploadedUrl", required = false) String preUploadedUrl, // Signed URL ile yüklenen
+                                                                                             // dosya
             Principal principal) { // JWT'den kullanıcı bilgisi
 
         try {
@@ -68,8 +95,19 @@ public class ContentController {
                 return ResponseEntity.status(400).body("Hata: Kullanıcı kimliği alınamadı. Lütfen tekrar giriş yapın.");
             }
 
+            // Dosya URL belirleme: preUploadedUrl varsa onu kullan, yoksa dosyayı yükle
+            String fileUrl;
+            if (preUploadedUrl != null && !preUploadedUrl.isEmpty()) {
+                fileUrl = preUploadedUrl;
+                System.out.println("Pre-uploaded URL kullanılıyor: " + fileUrl);
+            } else if (file != null && !file.isEmpty()) {
+                fileUrl = null; // ContentService içinde yüklenecek
+            } else {
+                return ResponseEntity.status(400).body("Hata: Dosya veya preUploadedUrl gerekli!");
+            }
+
             Content savedContent = contentService.addContent(
-                    title, category, topic, type, accessLevel, description, uploaderEmail, file);
+                    title, category, topic, type, accessLevel, description, uploaderEmail, file, fileUrl);
             return ResponseEntity.ok(savedContent);
 
         } catch (IllegalArgumentException e) {
