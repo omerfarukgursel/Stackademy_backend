@@ -10,6 +10,7 @@ import com.stackademy.proje.entity.User;
 import com.stackademy.proje.repository.ForumPostRepository;
 import com.stackademy.proje.repository.ForumReplyRepository;
 import com.stackademy.proje.repository.UserRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,13 +25,16 @@ public class ForumService {
     private final ForumReplyRepository replyRepository;
     private final UserRepository userRepository;
     private final CloudStorageService cloudStorageService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public ForumService(ForumPostRepository postRepository, ForumReplyRepository replyRepository,
-            UserRepository userRepository, CloudStorageService cloudStorageService) {
+            UserRepository userRepository, CloudStorageService cloudStorageService,
+            SimpMessagingTemplate messagingTemplate) {
         this.postRepository = postRepository;
         this.replyRepository = replyRepository;
         this.userRepository = userRepository;
         this.cloudStorageService = cloudStorageService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     // ========== POST İŞLEMLERİ ==========
@@ -176,8 +180,9 @@ public class ForumService {
         checkUserTimeout(request.getUserId());
 
         // Post kontrolü - Eğer çözüldüyse yorum eklenemez
-        ForumPost post = postRepository.findById(request.getPostId())
-                .orElseThrow(() -> new RuntimeException("Post bulunamadı: " + request.getPostId()));
+        UUID postId = request.getPostId();
+        ForumPost post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post bulunamadı: " + postId));
 
         if (post.isSolved()) {
             throw new RuntimeException("Bu soru çözüldü, yeni yorum eklenemez!");
@@ -187,11 +192,20 @@ public class ForumService {
         reply.setContent(request.getContent());
         reply.setImageUrl(request.getImageUrl()); // Görsel URL'sini kaydet
         reply.setUserId(request.getUserId());
-        reply.setPostId(request.getPostId());
+        reply.setPostId(postId);
         reply.setDeleted(false);
 
         ForumReply savedReply = replyRepository.save(reply);
-        return convertToReplyResponse(savedReply);
+        ReplyResponse response = convertToReplyResponse(savedReply);
+
+        // WebSocket ile duyur
+        try {
+            messagingTemplate.convertAndSend("/topic/posts/" + postId + "/comments", response);
+        } catch (Exception e) {
+            System.err.println("WebSocket duyuru hatası: " + e.getMessage());
+        }
+
+        return response;
     }
 
     // 8. Cevap sil (sadece öğretmen veya yorum sahibi - HARD delete)
