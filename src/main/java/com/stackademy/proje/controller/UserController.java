@@ -2,6 +2,7 @@ package com.stackademy.proje.controller;
 
 import com.stackademy.proje.dto.StudentResponse;
 import com.stackademy.proje.dto.TeacherResponse;
+import com.stackademy.proje.dto.UserResponse;
 import com.stackademy.proje.dto.UserUpdateRequest;
 import com.stackademy.proje.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -45,8 +46,14 @@ public class UserController {
 
     // 4. Profil Güncelleme (Herkes Kendi Profilini Günceller)
     @PutMapping("/update")
-    public ResponseEntity<StudentResponse> updateProfile(@RequestBody UserUpdateRequest request, Principal principal) {
+    public ResponseEntity<UserResponse> updateProfile(@RequestBody UserUpdateRequest request, Principal principal) {
         return ResponseEntity.ok(userService.updateUserProfile(principal.getName(), request));
+    }
+
+    // 4b. Mevcut Kullanıcı Bilgilerini Getir
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMe(Principal principal) {
+        return ResponseEntity.ok(userService.getUserProfile(principal.getName()));
     }
 
     // 5. Kullanıcı Sustur (Sadece Öğretmen)

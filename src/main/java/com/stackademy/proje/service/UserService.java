@@ -2,6 +2,7 @@ package com.stackademy.proje.service;
 
 import com.stackademy.proje.dto.StudentResponse;
 import com.stackademy.proje.dto.TeacherResponse;
+import com.stackademy.proje.dto.UserResponse;
 import com.stackademy.proje.dto.UserUpdateRequest;
 import com.stackademy.proje.entity.User;
 import com.stackademy.proje.repository.UserRepository;
@@ -76,8 +77,15 @@ public class UserService {
         return responseList;
     }
 
+    // --- PROFİL GETİRME ---
+    public UserResponse getUserProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı!"));
+        return convertToUserResponse(user);
+    }
+
     // --- PROFİL GÜNCELLEME (E-POSTA DEĞİŞİKLİĞİ KALDIRILDI) ---
-    public StudentResponse updateUserProfile(String currentEmail, UserUpdateRequest request) {
+    public UserResponse updateUserProfile(String currentEmail, UserUpdateRequest request) {
 
         // 1. Kullanıcıyı bul
         User user = userRepository.findByEmail(currentEmail)
@@ -95,11 +103,19 @@ public class UserService {
         User updatedUser = userRepository.save(user);
 
         // 4. Dönüş
-        return new StudentResponse(
-                updatedUser.getId().toString(),
-                updatedUser.getFullName(),
-                updatedUser.getSubscriptionPlan(),
-                updatedUser.getSchoolLevel());
+        return convertToUserResponse(updatedUser);
+    }
+
+    private UserResponse convertToUserResponse(User user) {
+        return new UserResponse(
+                user.getId().toString(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRole(),
+                user.getSubscriptionPlan(),
+                user.getSchoolLevel(),
+                user.getBranch());
     }
 
     // --- KULLANICI SUSTURMA (ÖĞRETMEN İÇİN) ---

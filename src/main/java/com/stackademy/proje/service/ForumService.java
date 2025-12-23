@@ -137,19 +137,23 @@ public class ForumService {
             throw new RuntimeException("Bu işlemi sadece öğretmenler veya soru sahibi yapabilir!");
         }
 
-        // Önce ilişkili resmi sil (varsa)
+        // 1. Önce postun kendi resmini sil (varsa)
         if (post.getImageUrl() != null && !post.getImageUrl().isEmpty()) {
             cloudStorageService.deleteFile(post.getImageUrl());
         }
 
-        // İlişkili reply'ların resimlerini de sil
-        List<ForumReply> replies = replyRepository.findByPostIdAndIsDeletedFalse(postId);
+        // 2. İlişkili TÜM reply'ların resimlerini sil
+        List<ForumReply> replies = replyRepository.findByPostId(postId);
         for (ForumReply reply : replies) {
             if (reply.getImageUrl() != null && !reply.getImageUrl().isEmpty()) {
                 cloudStorageService.deleteFile(reply.getImageUrl());
             }
         }
 
+        // 3. Veritabanından TÜM reply'ları sil (Hard Delete)
+        replyRepository.deleteByPostId(postId);
+
+        // 4. Postu sil
         postRepository.deleteById(postId);
     }
 
@@ -190,21 +194,30 @@ public class ForumService {
         return convertToReplyResponse(savedReply);
     }
 
-    // 8. Cevap sil (sadece öğretmen - soft delete)
-    public void deleteReply(UUID replyId, UUID teacherId) {
-        // Öğretmen kontrolü
-        User teacher = userRepository.findById(teacherId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + teacherId));
-
-        if (!"TEACHER".equalsIgnoreCase(teacher.getRole())) {
-            throw new RuntimeException("Bu işlemi sadece öğretmenler yapabilir!");
-        }
+    // 8. Cevap sil (sadece öğretmen veya yorum sahibi - HARD delete)
+    public void deleteReply(UUID replyId, UUID userId) {
+        // Kullanıcıyı bul
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
 
         ForumReply reply = replyRepository.findById(replyId)
                 .orElseThrow(() -> new RuntimeException("Cevap bulunamadı: " + replyId));
 
-        reply.setDeleted(true);
-        replyRepository.save(reply);
+        // Yetki kontrolü: Öğretmen veya yorum sahibi silebilir
+        boolean isTeacher = "TEACHER".equalsIgnoreCase(user.getRole());
+        boolean isOwner = reply.getUserId() != null && reply.getUserId().equals(userId);
+
+        if (!isTeacher && !isOwner) {
+            throw new RuntimeException("Bu işlemi sadece öğretmenler veya yorum sahibi yapabilir!");
+        }
+
+        // 1. Resmi sil
+        if (reply.getImageUrl() != null && !reply.getImageUrl().isEmpty()) {
+            cloudStorageService.deleteFile(reply.getImageUrl());
+        }
+
+        // 2. Veritabanından sil (Hard Delete)
+        replyRepository.deleteById(replyId);
     }
 
     // ========== YARDIMCI METODLAR ==========
