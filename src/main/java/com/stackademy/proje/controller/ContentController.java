@@ -152,46 +152,4 @@ public class ContentController {
             return ResponseEntity.status(500).body("Sunucu hatası: " + e.getMessage());
         }
     }
-
-    /**
-     * PDF Proxy - GCS'den PDF'i çekip frontend'e stream eder.
-     * Bu, CORS sorunlarını bypass eder ve pdf.js'in çalışmasını sağlar.
-     */
-    @GetMapping("/pdf-proxy")
-    public ResponseEntity<byte[]> proxyPdf(@RequestParam("url") String pdfUrl) {
-        try {
-            // URL decode
-            String decodedUrl = java.net.URLDecoder.decode(pdfUrl, "UTF-8");
-
-            // Güvenlik: Sadece stackfile bucket'ından izin ver
-            if (!decodedUrl.contains("storage.googleapis.com/stackfile") &&
-                    !decodedUrl.contains("storage.cloud.google.com/stackfile")) {
-                return ResponseEntity.status(403).body(null);
-            }
-
-            // PDF'i indir
-            java.net.URL url = new java.net.URL(decodedUrl);
-            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(10000);
-            connection.setReadTimeout(30000);
-
-            if (connection.getResponseCode() != 200) {
-                return ResponseEntity.status(connection.getResponseCode()).body(null);
-            }
-
-            byte[] pdfBytes = connection.getInputStream().readAllBytes();
-            connection.disconnect();
-
-            return ResponseEntity.ok()
-                    .header("Content-Type", "application/pdf")
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Cache-Control", "public, max-age=3600")
-                    .body(pdfBytes);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(null);
-        }
-    }
 }
