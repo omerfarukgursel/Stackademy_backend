@@ -73,4 +73,14 @@ public class AuthController {
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
         return ResponseEntity.ok(authService.resetPassword(request));
     }
+
+    @PostMapping("/resend-activation")
+    public ResponseEntity<String> resendActivation(@RequestBody ResendCodeRequest request) {
+        return ResponseEntity.ok(authService.resendActivationCode(request.getEmail()));
+    }
+
+    @PostMapping("/resend-reset-code")
+    public ResponseEntity<String> resendResetCode(@RequestBody ResendCodeRequest request) {
+        return ResponseEntity.ok(authService.resendResetCode(request.getEmail()));
+    }
 }

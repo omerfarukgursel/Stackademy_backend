@@ -11,25 +11,40 @@ import java.util.Random;
 @Service
 public class AuthService {
 
+    private static final int MAX_CODE_ATTEMPTS = 5;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtService jwtService;
+    private final EmailValidationService emailValidationService;
 
     public AuthService(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             EmailService emailService,
-            JwtService jwtService) {
+            JwtService jwtService,
+            EmailValidationService emailValidationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.jwtService = jwtService;
+        this.emailValidationService = emailValidationService;
     }
 
     // --- 1. KAYIT OL ---
     public String register(RegisterRequest request) {
+        // Email domain kontrolü (DNS MX)
+        if (!emailValidationService.isValidEmailDomain(request.getEmail())) {
+            throw new RuntimeException("Geçersiz e-posta domaini! Lütfen geçerli bir e-posta adresi kullanın.");
+        }
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Bu email adresi zaten kayıtlı!");
+        }
+
+        // Username kontrolü
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new RuntimeException("Bu kullanıcı adı zaten alınmış!");
         }
 
         User user = new User();
@@ -45,6 +60,7 @@ public class AuthService {
 
         String code = String.valueOf(new Random().nextInt(900000) + 100000);
         user.setActivationCode(code);
+        user.setActivationAttempts(0);
         user.setActive(false);
 
         userRepository.save(user);
@@ -67,15 +83,49 @@ public class AuthService {
             return "Bu hesap zaten aktif.";
         }
 
-        if (!request.getCode().equals(user.getActivationCode())) {
-            throw new RuntimeException("Hatalı aktivasyon kodu!");
+        // Deneme limiti kontrolü
+        if (user.getActivationAttempts() >= MAX_CODE_ATTEMPTS) {
+            throw new RuntimeException("Çok fazla hatalı deneme! Lütfen yeni kod talep edin.");
         }
 
+        if (!request.getCode().equals(user.getActivationCode())) {
+            user.setActivationAttempts(user.getActivationAttempts() + 1);
+            userRepository.save(user);
+            int remaining = MAX_CODE_ATTEMPTS - user.getActivationAttempts();
+            throw new RuntimeException("Hatalı aktivasyon kodu! Kalan deneme hakkı: " + remaining);
+        }
+
+        // Başarılı aktivasyon - sayacı sıfırla
+        user.setActivationAttempts(0);
         user.setActive(true);
         user.setActivationCode(null);
         userRepository.save(user);
 
         return "Hesap başarıyla aktive edildi! Artık giriş yapabilirsiniz.";
+    }
+
+    // --- 2.1 AKTİVASYON KODU TEKRAR GÖNDER ---
+    public String resendActivationCode(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı!"));
+
+        if (user.isActive()) {
+            return "Bu hesap zaten aktif.";
+        }
+
+        // Yeni kod oluştur ve deneme sayacını sıfırla
+        String code = String.valueOf(new Random().nextInt(900000) + 100000);
+        user.setActivationCode(code);
+        user.setActivationAttempts(0);
+        userRepository.save(user);
+
+        try {
+            emailService.sendActivationEmail(email, code);
+        } catch (Exception e) {
+            System.out.println("Mail hatası: " + e.getMessage());
+        }
+
+        return "Yeni aktivasyon kodu gönderildi.";
     }
 
     // --- 3. GİRİŞ YAP (HEM EMAIL HEM KULLANICI ADI) ---
@@ -121,6 +171,7 @@ public class AuthService {
 
         String code = String.valueOf(new Random().nextInt(900000) + 100000);
         user.setResetCode(code);
+        user.setResetCodeAttempts(0); // Yeni kod gönderildiğinde sayacı sıfırla
         userRepository.save(user);
 
         try {
@@ -137,11 +188,42 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
 
-        if (user.getResetCode() == null || !user.getResetCode().equals(code)) {
-            throw new RuntimeException("Hatalı veya geçersiz kod!");
+        // Deneme limiti kontrolü
+        if (user.getResetCodeAttempts() >= MAX_CODE_ATTEMPTS) {
+            throw new RuntimeException("Çok fazla hatalı deneme! Lütfen yeni kod talep edin.");
         }
 
+        if (user.getResetCode() == null || !user.getResetCode().equals(code)) {
+            user.setResetCodeAttempts(user.getResetCodeAttempts() + 1);
+            userRepository.save(user);
+            int remaining = MAX_CODE_ATTEMPTS - user.getResetCodeAttempts();
+            throw new RuntimeException("Hatalı veya geçersiz kod! Kalan deneme hakkı: " + remaining);
+        }
+
+        // Başarılı - sayacı sıfırla
+        user.setResetCodeAttempts(0);
+        userRepository.save(user);
+
         return "Kod doğrulandı.";
+    }
+
+    // --- 5.1 ŞİFRE SIFIRLAMA KODU TEKRAR GÖNDER ---
+    public String resendResetCode(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+
+        String code = String.valueOf(new Random().nextInt(900000) + 100000);
+        user.setResetCode(code);
+        user.setResetCodeAttempts(0);
+        userRepository.save(user);
+
+        try {
+            emailService.sendPasswordResetEmail(email, code);
+        } catch (Exception e) {
+            System.out.println("Mail hatası: " + e.getMessage());
+        }
+
+        return "Yeni sıfırlama kodu gönderildi.";
     }
 
     // --- 6. ŞİFREMİ UNUTTUM (YENİ ŞİFRE) ---
@@ -155,6 +237,7 @@ public class AuthService {
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         user.setResetCode(null);
+        user.setResetCodeAttempts(0);
         userRepository.save(user);
 
         return "Şifreniz başarıyla değiştirildi. Giriş yapabilirsiniz.";

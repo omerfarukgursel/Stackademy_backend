@@ -32,6 +32,12 @@ public class User extends BaseEntity implements UserDetails { // <-- DEĞİŞİK
     private String activationCode;
     private String resetCode;
 
+    @Column(columnDefinition = "integer default 0")
+    private Integer activationAttempts = 0;
+
+    @Column(columnDefinition = "integer default 0")
+    private Integer resetCodeAttempts = 0;
+
     private java.time.LocalDateTime timeoutUntil; // Kullanıcı susturma bitiş zamanı
 
     // Sıralama ve ilerleme için
@@ -213,5 +219,21 @@ public class User extends BaseEntity implements UserDetails { // <-- DEĞİŞİK
 
     public void setLastStudyTime(java.time.LocalDateTime lastStudyTime) {
         this.lastStudyTime = lastStudyTime;
+    }
+
+    public Integer getActivationAttempts() {
+        return activationAttempts != null ? activationAttempts : 0;
+    }
+
+    public void setActivationAttempts(Integer activationAttempts) {
+        this.activationAttempts = activationAttempts;
+    }
+
+    public Integer getResetCodeAttempts() {
+        return resetCodeAttempts != null ? resetCodeAttempts : 0;
+    }
+
+    public void setResetCodeAttempts(Integer resetCodeAttempts) {
+        this.resetCodeAttempts = resetCodeAttempts;
     }
 }

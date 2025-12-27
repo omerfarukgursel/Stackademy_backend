@@ -1,0 +1,42 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.stackademy:proje >------------------------
+[INFO] Building proje 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ proje ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ proje ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 67 source files with javac [debug parameters release 17] to target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/abdul/Desktop/Stackademy2/baackend/src/main/java/com/stackademy/proje/ProjeApplication.java:[3,32] cannot access org.springframework.boot.SpringApplication
+  bad class file: C:\Users\abdul\.m2\repository\org\springframework\boot\spring-boot\3.3.0\spring-boot-3.3.0.jar(org/springframework/boot/SpringApplication.class)
+    class file has wrong version 61.0, should be 52.0
+    Please remove or make sure it appears in the correct subdirectory of the classpath.
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  2.502 s
+[INFO] Finished at: 2025-12-27T14:06:42+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile (default-compile) on project proje: Compilation failure
+[ERROR] /C:/Users/abdul/Desktop/Stackademy2/baackend/src/main/java/com/stackademy/proje/ProjeApplication.java:[3,32] cannot access org.springframework.boot.SpringApplication
+[ERROR]   bad class file: C:\Users\abdul\.m2\repository\org\springframework\boot\spring-boot\3.3.0\spring-boot-3.3.0.jar(org/springframework/boot/SpringApplication.class)
+[ERROR]     class file has wrong version 61.0, should be 52.0
+[ERROR]     Please remove or make sure it appears in the correct subdirectory of the classpath.
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
