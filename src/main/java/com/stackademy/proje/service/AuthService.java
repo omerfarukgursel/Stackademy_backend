@@ -122,11 +122,11 @@ public class AuthService {
         return "Yeni aktivasyon kodu gönderildi.";
     }
 
-    // --- 3. GİRİŞ YAP (HEM EMAIL HEM KULLANICI ADI) ---
+    // --- 3. GİRİŞ YAP (SADECE EMAIL İLE) ---
     public LoginResponse login(LoginRequest request, String targetRole) {
 
-        // DEĞİŞİKLİK BURADA: Kullanıcı adı veya Email ile bul
-        User user = userRepository.findByUsernameOrEmail(request.getEmail(), request.getEmail())
+        // Sadece email ile kullanıcı bul
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı!"));
 
         // Şifre Kontrolü
