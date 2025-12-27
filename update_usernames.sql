@@ -1,11 +1,8 @@
--- Username kaldırma SQL script'i
--- Bu script, mevcut kullanıcıların username alanlarını email ile değiştirir
+-- Username kolonu tamamen kaldırma SQL script'i
+-- DİKKAT: Bu script username kolonunu veritabanından siler!
 
--- 1. Önce mevcut durumu kontrol et
-SELECT id, username, email FROM users WHERE username != email;
+-- 1. Önce username kolonunu kaldır
+ALTER TABLE users DROP COLUMN IF EXISTS username;
 
--- 2. Tüm kullanıcıların username'ini email ile güncelle
-UPDATE users SET username = email WHERE username != email;
-
--- 3. Sonucu doğrula
-SELECT id, username, email FROM users;
+-- 2. Sonucu doğrula
+SELECT column_name FROM information_schema.columns WHERE table_name = 'users';

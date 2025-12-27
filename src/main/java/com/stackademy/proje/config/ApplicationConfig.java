@@ -23,8 +23,8 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        // Gelen değer (username) hem kullanıcı adı hem de email olabilir. İkisine de bakıyoruz.
-        return username -> userRepository.findByUsernameOrEmail(username, username)
+        // Sadece email ile kullanıcı buluyoruz (username kaldırıldı)
+        return email -> userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Kullanıcı bulunamadı"));
     }
 

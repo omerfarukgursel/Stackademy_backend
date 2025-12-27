@@ -15,9 +15,6 @@ public class User extends BaseEntity implements UserDetails { // <-- DEĞİŞİK
     private String fullName;
 
     @Column(unique = true, nullable = false)
-    private String username;
-
-    @Column(unique = true, nullable = false)
     private String email;
 
     private String phone;
@@ -96,10 +93,6 @@ public class User extends BaseEntity implements UserDetails { // <-- DEĞİŞİK
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
-
-    public void setUsername(String username) {
-        this.username = username;
-    } // getUsername yukarıda Override edildi
 
     public String getEmail() {
         return email;

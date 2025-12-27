@@ -44,8 +44,6 @@ public class AuthService {
 
         User user = new User();
         user.setFullName(request.getFullName());
-        // Username olarak email kullan (veritabanı uyumluluğu için)
-        user.setUsername(request.getEmail());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
